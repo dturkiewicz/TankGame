@@ -51,25 +51,25 @@ export class Terrain {
   private proceduralVertexHeight(i: number): number {
     const worldX = i * this.segmentWidth;
 
-    // Macro ridge layer: broad rolling dunes across 850px wavelength, amplitude 130px
-    const macroCell = Math.floor(worldX / 850);
-    const macroT = (worldX - macroCell * 850) / 850;
+    // Macro ridge layer: broad towering dunes across 950px wavelength, amplitude 210px
+    const macroCell = Math.floor(worldX / 950);
+    const macroT = (worldX - macroCell * 950) / 950;
     const macroSmooth = macroT * macroT * (3 - 2 * macroT);
     const hMacro = this.hash(macroCell, 1) * (1 - macroSmooth) + this.hash(macroCell + 1, 1) * macroSmooth;
 
-    // Mid facet layer: natural desert undulations across 320px wavelength, amplitude 32px
-    const midCell = Math.floor(worldX / 320);
-    const midT = (worldX - midCell * 320) / 320;
+    // Mid facet layer: natural desert undulations across 340px wavelength, amplitude 45px
+    const midCell = Math.floor(worldX / 340);
+    const midT = (worldX - midCell * 340) / 340;
     const midSmooth = midT * midT * (3 - 2 * midT);
     const hMid = this.hash(midCell, 2) * (1 - midSmooth) + this.hash(midCell + 1, 2) * midSmooth;
 
-    // Micro facet layer: subtle low-poly surface shifts across 120px wavelength, amplitude 8px
+    // Micro facet layer: subtle low-poly surface shifts across 120px wavelength, amplitude 10px
     const microCell = Math.floor(worldX / 120);
     const microT = (worldX - microCell * 120) / 120;
     const microSmooth = microT * microT * (3 - 2 * microT);
     const hMicro = this.hash(microCell, 3) * (1 - microSmooth) + this.hash(microCell + 1, 3) * microSmooth;
 
-    return this.baseWorldY + hMacro * 130 + hMid * 32 + hMicro * 8;
+    return this.baseWorldY + hMacro * 210 + hMid * 45 + hMicro * 10;
   }
 
   public getVertexHeight(i: number): number {
