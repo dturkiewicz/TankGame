@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <title>Dune Artillery - Desert Golfing Style Web Game</title>
+    <link rel="stylesheet" href="/src/style.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Work+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
+  </head>
+  <body>
+    <div id="game-container">
+      <canvas id="game-canvas"></canvas>
+
+      <!-- Minimalist Desert Golfing Top HUD -->
+      <header id="top-hud">
+        <div class="hud-group">
+          <div class="hud-label">TARGET</div>
+          <div class="hud-value" id="target-display">1</div>
+        </div>
+        
+        <div class="hud-center">
+          <div class="wind-indicator" id="wind-container" title="Desert Wind">
+            <span class="wind-arrow" id="wind-arrow">➔</span>
+            <span class="wind-speed" id="wind-value">0 MPH</span>
+          </div>
+          <div class="status-banner" id="status-banner"></div>
+        </div>
+
+        <div class="hud-group">
+          <div class="hud-label">TOTAL SHOTS</div>
+          <div class="hud-value" id="shots-display">0</div>
+        </div>
+      </header>
+
+      <!-- Bottom Interactive Controls & Readouts -->
+      <footer id="bottom-controls">
+        <div class="control-card" id="interactive-panel">
+          <!-- Movement Arrows & Fuel Indicator -->
+          <div class="movement-container">
+            <button id="btn-move-left" class="btn btn-nav" title="Drive Left (A / Left Arrow)" aria-label="Drive Left">
+              <span class="nav-arrow">◀</span>
+              <span class="nav-text">LEFT</span>
+            </button>
+
+            <div class="turn-fuel-box">
+              <div class="turn-badge" id="turn-badge">YOUR TURN</div>
+              <div class="fuel-bar-wrapper" title="Remaining movement fuel for this turn">
+                <div class="fuel-bar-fill" id="fuel-bar-fill" style="width: 100%;"></div>
+              </div>
+              <span class="fuel-text" id="fuel-text">FUEL 100%</span>
+            </div>
+
+            <button id="btn-move-right" class="btn btn-nav" title="Drive Right (D / Right Arrow)" aria-label="Drive Right">
+              <span class="nav-text">RIGHT</span>
+              <span class="nav-arrow">▶</span>
+            </button>
+          </div>
+
+          <div class="card-bottom-row">
+            <div class="helper-hint" id="helper-hint">
+              <span>Hold ◀ ▶ to drive • Pull back on screen to aim & fire</span>
+            </div>
+            <div class="utility-bar">
+              <button id="sound-btn" class="btn-icon" aria-label="Toggle Sound" title="Toggle Sound (M)">
+                <span id="sound-icon">🔊</span>
+              </button>
+              <button id="reset-btn" class="btn-icon" aria-label="Restart Game" title="Restart to Target 1">
+                <span>↺</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </footer>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

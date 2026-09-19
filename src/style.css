@@ -1,0 +1,392 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  height: -webkit-fill-available;
+  height: 100dvh;
+  overflow: hidden;
+  background-color: #dfbd88;
+  font-family: 'Space Mono', monospace, -apple-system, sans-serif;
+  color: #3e2815;
+}
+
+#game-container {
+  position: relative;
+  width: 100vw;
+  height: 100%;
+  height: -webkit-fill-available;
+  height: 100dvh;
+  overflow: hidden;
+}
+
+#game-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  touch-action: none;
+  cursor: crosshair;
+}
+
+/* Desert Golfing Top HUD */
+#top-hud {
+  position: absolute;
+  top: max(56px, calc(env(safe-area-inset-top, 0px) + 14px));
+  left: max(16px, env(safe-area-inset-left, 0px));
+  right: max(16px, env(safe-area-inset-right, 0px));
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.hud-group {
+  display: flex;
+  flex-direction: column;
+  background: rgba(245, 230, 206, 0.7);
+  backdrop-filter: blur(8px);
+  padding: 8px 18px;
+  border-radius: 8px;
+  border: 1px solid rgba(139, 87, 42, 0.2);
+  box-shadow: 0 4px 12px rgba(62, 40, 21, 0.08);
+}
+
+.hud-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: #8c5d33;
+  text-transform: uppercase;
+}
+
+.hud-value {
+  font-size: 26px;
+  font-weight: 700;
+  color: #2e1a0b;
+  line-height: 1.1;
+}
+
+.hud-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.wind-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(245, 230, 206, 0.7);
+  backdrop-filter: blur(8px);
+  padding: 6px 14px;
+  border-radius: 20px;
+  border: 1px solid rgba(139, 87, 42, 0.2);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+.wind-arrow {
+  display: inline-block;
+  font-size: 14px;
+  transition: transform 0.3s ease;
+}
+
+.wind-speed {
+  color: #5c3c1e;
+}
+
+.status-banner {
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: #d13e1b;
+  opacity: 0;
+  transform: translateY(-5px);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  background: rgba(255, 255, 255, 0.85);
+  padding: 6px 16px;
+  border-radius: 6px;
+}
+
+.status-banner.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Bottom Controls */
+#bottom-controls {
+  position: absolute;
+  bottom: max(20px, calc(env(safe-area-inset-bottom, 0px) + 24px));
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  z-index: 10;
+  max-width: 92vw;
+}
+
+.control-card {
+  background: rgba(247, 235, 218, 0.88);
+  backdrop-filter: blur(12px);
+  padding: 12px 18px;
+  border-radius: 16px;
+  border: 1px solid rgba(139, 87, 42, 0.25);
+  box-shadow: 0 10px 30px rgba(62, 40, 21, 0.15);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.movement-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  min-width: 280px;
+}
+
+.turn-fuel-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-width: 130px;
+}
+
+.turn-badge {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  padding: 3px 10px;
+  border-radius: 12px;
+  background: rgba(46, 204, 113, 0.2);
+  color: #1b6338;
+  transition: all 0.25s ease;
+}
+
+.turn-badge.enemy {
+  background: rgba(231, 76, 60, 0.25);
+  color: #96281e;
+}
+
+.fuel-bar-wrapper {
+  width: 100%;
+  height: 8px;
+  background: #d3b488;
+  border-radius: 4px;
+  overflow: hidden;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.15);
+}
+
+.fuel-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #27ae60, #2ecc71);
+  border-radius: 4px;
+  transition: width 0.08s ease;
+}
+
+.fuel-text {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: #8c5d33;
+}
+
+/* Buttons */
+.btn {
+  border: none;
+  outline: none;
+  cursor: pointer;
+  font-family: inherit;
+  font-weight: 700;
+  border-radius: 12px;
+  transition: all 0.15s ease;
+}
+
+.btn-nav {
+  background: #382415;
+  color: #fff4e3;
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 4px 10px rgba(56, 36, 21, 0.3);
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.btn-nav:hover {
+  background: #1c1109;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 14px rgba(56, 36, 21, 0.4);
+}
+
+.btn-nav:active, .btn-nav.active {
+  background: #000;
+  transform: scale(0.94);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.35);
+}
+
+.btn-nav:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.nav-arrow {
+  font-size: 18px;
+  line-height: 1;
+}
+
+.nav-text {
+  font-size: 11px;
+  letter-spacing: 1px;
+  font-weight: 700;
+}
+
+.btn-fire {
+  background: #382415;
+  color: #fff4e3;
+  padding: 12px 24px;
+  font-size: 14px;
+  letter-spacing: 1.5px;
+  box-shadow: 0 4px 10px rgba(56, 36, 21, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-fire:hover {
+  background: #1c1109;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 14px rgba(56, 36, 21, 0.45);
+}
+
+.btn-fire:active {
+  transform: translateY(1px);
+  box-shadow: 0 2px 4px rgba(56, 36, 21, 0.3);
+}
+
+.btn-fire:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.card-bottom-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+}
+
+.helper-hint {
+  font-size: 11px;
+  color: #8c6039;
+  text-align: left;
+  letter-spacing: 0.3px;
+  flex: 1;
+}
+
+/* Utility bar */
+.utility-bar {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-icon {
+  background: rgba(245, 230, 206, 0.75);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(139, 87, 42, 0.2);
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  color: #3e2815;
+  transition: all 0.15s ease;
+}
+
+.btn-icon:hover {
+  background: rgba(255, 245, 230, 0.95);
+  transform: scale(1.08);
+}
+
+.btn-icon:active {
+  transform: scale(0.95);
+}
+
+/* Responsive adjustments for Mobile */
+@media (max-width: 600px) {
+  #top-hud {
+    top: max(54px, calc(env(safe-area-inset-top, 0px) + 12px));
+    left: max(10px, env(safe-area-inset-left, 0px));
+    right: max(10px, env(safe-area-inset-right, 0px));
+  }
+  .hud-value {
+    font-size: 18px;
+  }
+  .hud-label {
+    font-size: 8px;
+    letter-spacing: 1px;
+  }
+  .hud-group {
+    padding: 4px 10px;
+    border-radius: 6px;
+  }
+  .wind-indicator {
+    padding: 3px 8px;
+    font-size: 11px;
+    gap: 4px;
+  }
+  #bottom-controls {
+    bottom: max(20px, calc(env(safe-area-inset-bottom, 0px) + 16px));
+    width: 94vw;
+    max-width: 390px;
+  }
+  .control-card {
+    padding: 8px 12px;
+    gap: 6px;
+    border-radius: 14px;
+  }
+  .movement-container {
+    min-width: unset;
+    gap: 8px;
+  }
+  .btn-nav {
+    padding: 10px 14px;
+  }
+  .turn-fuel-box {
+    min-width: 95px;
+  }
+  .helper-hint {
+    font-size: 9.5px;
+  }
+  .btn-icon {
+    width: 30px;
+    height: 30px;
+    font-size: 13px;
+  }
+  .utility-bar {
+    gap: 6px;
+  }
+}
