@@ -92,18 +92,21 @@ export class Renderer {
     ctx.fillStyle = color;
     ctx.beginPath();
 
-    const stepPx = 15;
+    const bgSegW = layer === 1 ? 110 : 180;
     const leftWorld = camera.screenToWorld(0, 0).x;
     const rightWorld = camera.screenToWorld(w, 0).x;
 
+    const startIdx = Math.floor((leftWorld * parallax) / bgSegW) - 1;
+    const endIdx = Math.ceil((rightWorld * parallax) / bgSegW) + 1;
+
     ctx.moveTo(0, h);
 
-    for (let sx = 0; sx <= w + stepPx; sx += stepPx) {
-      const worldX = leftWorld + (sx / w) * (rightWorld - leftWorld);
-      const parallaxWorldX = worldX * parallax;
-      const worldY = terrain.getBackdropDuneHeight(parallaxWorldX, layer);
-      const screenPos = camera.worldToScreen(worldX, worldY);
-      ctx.lineTo(sx, screenPos.y);
+    for (let i = startIdx; i <= endIdx; i++) {
+      const bgWorldX = i * bgSegW;
+      const worldY = terrain.getBackdropDuneHeight(bgWorldX, layer);
+      const screenX = ((bgWorldX / parallax - leftWorld) / (rightWorld - leftWorld)) * w;
+      const screenPos = camera.worldToScreen(0, worldY);
+      ctx.lineTo(screenX, screenPos.y);
     }
 
     ctx.lineTo(w, h);
@@ -116,8 +119,8 @@ export class Renderer {
     const w = this.canvas.width;
     const h = this.canvas.height;
 
-    const leftWorld = camera.screenToWorld(0, 0).x - 40;
-    const rightWorld = camera.screenToWorld(w, 0).x + 40;
+    const leftWorld = camera.screenToWorld(-10, 0).x;
+    const rightWorld = camera.screenToWorld(w + 10, 0).x;
     terrain.ensureRange(leftWorld, rightWorld);
 
     ctx.save();
@@ -126,13 +129,15 @@ export class Renderer {
     ctx.beginPath();
     ctx.moveTo(0, h);
 
-    const stepPx = 4; // Pixel resolution for crisp curve
+    const segW = terrain.segmentWidth;
+    const startIdx = Math.floor(leftWorld / segW) - 1;
+    const endIdx = Math.ceil(rightWorld / segW) + 1;
     const points: { x: number; y: number }[] = [];
 
-    for (let sx = -10; sx <= w + 10; sx += stepPx) {
-      const worldPos = camera.screenToWorld(sx, 0);
-      const groundY = terrain.getHeight(worldPos.x);
-      const screenPos = camera.worldToScreen(worldPos.x, groundY);
+    for (let i = startIdx; i <= endIdx; i++) {
+      const worldX = i * segW;
+      const worldY = terrain.getVertexHeight(i);
+      const screenPos = camera.worldToScreen(worldX, worldY);
       points.push(screenPos);
       ctx.lineTo(screenPos.x, screenPos.y);
     }
@@ -147,7 +152,7 @@ export class Renderer {
     ctx.fillStyle = sandGrad;
     ctx.fill();
 
-    // Crisp crest line (Desert Golfing signature edge)
+    // Crisp crest line (Desert Golfing signature polygonal edge)
     ctx.beginPath();
     for (let i = 0; i < points.length; i++) {
       if (i === 0) {
@@ -157,8 +162,9 @@ export class Renderer {
       }
     }
     ctx.strokeStyle = theme.duneLine;
-    ctx.lineWidth = Math.max(2, 3 * camera.zoom);
-    ctx.lineCap = 'round';
+    ctx.lineWidth = Math.max(2.5, 3.2 * camera.zoom);
+    ctx.lineJoin = 'miter';
+    ctx.miterLimit = 3;
     ctx.stroke();
 
     ctx.restore();
