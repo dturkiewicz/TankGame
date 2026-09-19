@@ -305,17 +305,30 @@ export class Tank {
       let minGroundedU = Infinity;
       let maxGroundedU = -Infinity;
 
+      let maxSubPen = 0;
+
       // First pass: count grounded bottom points and record support span
       for (let i = 0; i < Tank.CONTACT_POINTS.length; i++) {
         const cp = Tank.CONTACT_POINTS[i];
         const px = this.x + cp.u * cosA - cp.v * sinA;
         const py = this.y + cp.u * sinA + cp.v * cosA;
         const groundY = terrain.getHeight(px);
+        const pen = py - groundY;
+        if (pen > maxSubPen) maxSubPen = pen;
         if (py >= groundY && cp.isBottom) {
           subGroundedCount++;
           if (cp.u < minGroundedU) minGroundedU = cp.u;
           if (cp.u > maxGroundedU) maxGroundedU = cp.u;
         }
+      }
+
+      // Anti-launch positional relaxation:
+      // If tank is interpenetrating terrain (e.g. crater cleared or terrain restored beneath tank),
+      // relieve position smoothly upward rather than generating explosive launch impulses
+      if (maxSubPen > 4.0) {
+        const lift = maxSubPen - 1.5;
+        this.y -= lift;
+        if (this.vy > 0) this.vy = 0;
       }
 
       if (subGroundedCount > totalGroundedThisFrame) {
@@ -351,8 +364,9 @@ export class Tank {
           // Normal relative velocity (positive when moving deeper into ground)
           const vNorm = -(vPointX * normX + vPointY * normY);
 
-          // Restoring spring-damper normal force
-          const fn = Math.max(0, kNormal * penetration + cNormal * vNorm);
+          // Restoring spring-damper normal force (capped penetration prevents orbital launch impulses)
+          const clampedPen = Math.min(5.0, penetration);
+          const fn = Math.max(0, kNormal * clampedPen + cNormal * vNorm);
           const forceNormX = normX * fn;
           const forceNormY = normY * fn;
 

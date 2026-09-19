@@ -41,6 +41,7 @@ class GameApp {
   // DOM Elements
   private targetDisplay: HTMLElement;
   private shotsDisplay: HTMLElement;
+  private lastShotDisplay: HTMLElement;
   private windArrow: HTMLElement;
   private windValue: HTMLElement;
   private statusBanner: HTMLElement;
@@ -52,6 +53,7 @@ class GameApp {
     this.canvas = document.getElementById('game-canvas') as HTMLCanvasElement;
     this.targetDisplay = document.getElementById('target-display')!;
     this.shotsDisplay = document.getElementById('shots-display')!;
+    this.lastShotDisplay = document.getElementById('last-shot-display')!;
     this.windArrow = document.getElementById('wind-arrow')!;
     this.windValue = document.getElementById('wind-value')!;
     this.statusBanner = document.getElementById('status-banner')!;
@@ -191,7 +193,7 @@ class GameApp {
     this.isSimulatingTurn = true;
     this.currentShooter = 'player';
     this.input.setCanFire(false);
-    this.gameState.recordShot();
+    this.gameState.recordShot(this.input.aim.angleDeg, this.input.aim.powerPct);
     this.updateHUD();
 
     const tip = this.playerTank.getBarrelTip();
@@ -214,6 +216,12 @@ class GameApp {
   private updateHUD() {
     this.targetDisplay.textContent = String(this.gameState.currentTargetIndex);
     this.shotsDisplay.textContent = String(this.gameState.totalShots);
+
+    if (this.gameState.lastShotAngle !== null && this.gameState.lastShotPower !== null) {
+      this.lastShotDisplay.textContent = `${this.gameState.lastShotAngle}° / ${this.gameState.lastShotPower}%`;
+    } else {
+      this.lastShotDisplay.textContent = '--';
+    }
 
     const wind = this.gameState.windMph;
     const absWind = Math.abs(wind);
@@ -400,6 +408,7 @@ class GameApp {
         this.terrain.clearCraters(playerX - 250, this.enemyTank.x + 350);
         this.playerTank.x = playerX;
         this.playerTank.alignToTerrain(this.terrain);
+        this.enemyTank.alignToTerrain(this.terrain);
         this.playerTank.resetHealth();
         this.playerTank.refillFuel();
         this.input.updateFuelUI(100);
@@ -471,7 +480,9 @@ class GameApp {
       this.particles,
       theme,
       this.input.aim,
-      !this.isSimulatingTurn && this.playerTank.isAlive && !this.playerTank.isFlippedOnBack()
+      !this.isSimulatingTurn && this.playerTank.isAlive && !this.playerTank.isFlippedOnBack(),
+      this.gameState.lastShotAngle,
+      this.gameState.lastShotPower
     );
   }
 }

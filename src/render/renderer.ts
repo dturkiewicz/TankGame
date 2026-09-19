@@ -31,7 +31,9 @@ export class Renderer {
     particles: ParticleSystem,
     theme: DesertTheme,
     aimState: AimState,
-    canFire: boolean
+    canFire: boolean,
+    lastShotAngle: number | null = null,
+    lastShotPower: number | null = null
   ) {
     const ctx = this.ctx;
     const w = this.canvas.width;
@@ -66,7 +68,7 @@ export class Renderer {
 
     // 7. Aim Trajectory Preview (ONLY when actively aiming/dragging)
     if (canFire && playerTank.isAlive && aimState.isDragging) {
-      this.renderAimGuide(playerTank, aimState, camera);
+      this.renderAimGuide(playerTank, aimState, camera, lastShotAngle, lastShotPower);
     }
 
     // 8. Artillery Projectile
@@ -501,7 +503,13 @@ export class Renderer {
 
 
 
-  private renderAimGuide(tank: Tank, aimState: AimState, camera: Camera) {
+  private renderAimGuide(
+    tank: Tank,
+    aimState: AimState,
+    camera: Camera,
+    lastShotAngle: number | null = null,
+    lastShotPower: number | null = null
+  ) {
     const ctx = this.ctx;
     const tip = tank.getBarrelTip();
 
@@ -535,42 +543,88 @@ export class Renderer {
       ctx.fill();
     }
 
-    // Slingshot drag visualizer line if user is dragging directly
+    // Forward aiming guide line & target reticle
     if (aimState.isDragging) {
+      // 1. Sleek drag aim line
       ctx.beginPath();
       ctx.moveTo(aimState.dragStartX, aimState.dragStartY);
       ctx.lineTo(aimState.dragCurrentX, aimState.dragCurrentY);
-      ctx.strokeStyle = 'rgba(180, 50, 30, 0.6)';
-      ctx.lineWidth = 2.5;
-      ctx.setLineDash([4, 4]);
+      ctx.strokeStyle = 'rgba(195, 55, 35, 0.75)';
+      ctx.lineWidth = 3.0;
+      ctx.setLineDash([5, 5]);
       ctx.stroke();
       ctx.setLineDash([]);
 
+      // 2. Start anchor circle
       ctx.beginPath();
-      ctx.arc(aimState.dragStartX, aimState.dragStartY, 6, 0, Math.PI * 2);
-      ctx.fillStyle = 'rgba(180, 50, 30, 0.8)';
+      ctx.arc(aimState.dragStartX, aimState.dragStartY, 5, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(195, 55, 35, 0.7)';
       ctx.fill();
 
-      // Floating angle & power HUD badge
-      const badgeX = aimState.dragCurrentX;
-      const badgeY = aimState.dragCurrentY - 24;
-      const text = `${aimState.angleDeg}° • ${aimState.powerPct}%`;
+      // 3. Current drag reticle / indicator
+      ctx.beginPath();
+      ctx.arc(aimState.dragCurrentX, aimState.dragCurrentY, 8, 0, Math.PI * 2);
+      ctx.strokeStyle = 'rgba(195, 55, 35, 0.9)';
+      ctx.lineWidth = 2.5;
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.arc(aimState.dragCurrentX, aimState.dragCurrentY, 3.5, 0, Math.PI * 2);
+      ctx.fillStyle = '#ff6b4a';
+      ctx.fill();
+
+      // 4. Large Floating Angle & Power HUD Badge
+      const hasLastShot = lastShotAngle !== null && lastShotPower !== null;
+      const currentText = `${aimState.angleDeg}° • ${aimState.powerPct}%`;
+      const lastText = hasLastShot ? `LAST: ${lastShotAngle}° • ${lastShotPower}%` : '';
+
+      ctx.font = 'bold 20px "Space Mono", monospace';
+      const curMetrics = ctx.measureText(currentText);
 
       ctx.font = 'bold 12px "Space Mono", monospace';
-      const textMetrics = ctx.measureText(text);
-      const paddingX = 8;
-      const boxW = textMetrics.width + paddingX * 2;
-      const boxH = 20;
+      const lastMetrics = hasLastShot ? ctx.measureText(lastText) : { width: 0 };
 
-      ctx.fillStyle = 'rgba(56, 36, 21, 0.85)';
+      const contentWidth = Math.max(curMetrics.width, lastMetrics.width);
+      const paddingX = 14;
+      const boxW = contentWidth + paddingX * 2;
+      const boxH = hasLastShot ? 54 : 36;
+
+      // Keep badge on-screen and positioned above the user's touch
+      const badgeX = Math.max(boxW / 2 + 12, Math.min(this.canvas.width - boxW / 2 - 12, aimState.dragCurrentX));
+      const badgeY = Math.max(boxH / 2 + 56, aimState.dragCurrentY - (hasLastShot ? 46 : 34));
+
+      // Background rounded card with sleek subtle shadow & border
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.25)';
+      ctx.shadowBlur = 10;
+      ctx.shadowOffsetY = 4;
+
+      ctx.fillStyle = 'rgba(42, 26, 15, 0.92)';
       ctx.beginPath();
-      ctx.roundRect(badgeX - boxW / 2, badgeY - boxH / 2, boxW, boxH, 6);
+      ctx.roundRect(badgeX - boxW / 2, badgeY - boxH / 2, boxW, boxH, 8);
       ctx.fill();
 
-      ctx.fillStyle = '#fff4e3';
+      ctx.shadowColor = 'transparent';
+      ctx.shadowBlur = 0;
+      ctx.shadowOffsetY = 0;
+
+      ctx.strokeStyle = 'rgba(235, 180, 115, 0.4)';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+
+      // Render Current Angle & Power (Big & Bold!)
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.fillText(text, badgeX, badgeY);
+      ctx.font = 'bold 20px "Space Mono", monospace';
+      ctx.fillStyle = '#fff9ee';
+      const curY = hasLastShot ? badgeY - 10 : badgeY;
+      ctx.fillText(currentText, badgeX, curY);
+
+      // Render Last Shot telemetry
+      if (hasLastShot) {
+        ctx.font = 'bold 12px "Space Mono", monospace';
+        ctx.fillStyle = '#d4a373';
+        ctx.fillText(lastText, badgeX, badgeY + 14);
+      }
     }
 
     ctx.restore();

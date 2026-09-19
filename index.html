@@ -28,6 +28,11 @@
           <div class="status-banner" id="status-banner"></div>
         </div>
 
+        <div class="hud-group" id="last-shot-group" title="Angle and power of previous shot">
+          <div class="hud-label">LAST SHOT</div>
+          <div class="hud-value hud-telemetry" id="last-shot-display">--</div>
+        </div>
+
         <div class="hud-group">
           <div class="hud-label">TOTAL SHOTS</div>
           <div class="hud-value" id="shots-display">0</div>
@@ -60,7 +65,7 @@
 
           <div class="card-bottom-row">
             <div class="helper-hint" id="helper-hint">
-              <span>Hold ◀ ▶ to drive • Pull back on screen to aim & fire</span>
+              <span>Hold ◀ ▶ to drive • Drag forward to aim & fire</span>
             </div>
             <div class="utility-bar">
               <button id="sound-btn" class="btn-icon" aria-label="Toggle Sound" title="Toggle Sound (M)">

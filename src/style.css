@@ -76,6 +76,13 @@ html, body {
   line-height: 1.1;
 }
 
+.hud-telemetry {
+  font-size: 20px;
+  font-weight: 700;
+  color: #7a3c10;
+  white-space: nowrap;
+}
+
 .hud-center {
   display: flex;
   flex-direction: column;
@@ -344,6 +351,9 @@ html, body {
   }
   .hud-value {
     font-size: 18px;
+  }
+  .hud-telemetry {
+    font-size: 14px;
   }
   .hud-label {
     font-size: 8px;

@@ -66,6 +66,8 @@ export class GameState {
   public totalShots: number = 0;
   public shotsOnCurrentTarget: number = 0;
   public windMph: number = 0; // Negative = blowing left, positive = blowing right
+  public lastShotAngle: number | null = null;
+  public lastShotPower: number | null = null;
 
   private storageKey = 'dune_artillery_save_v1';
 
@@ -84,9 +86,11 @@ export class GameState {
     }
   }
 
-  public recordShot() {
+  public recordShot(angle?: number, power?: number) {
     this.totalShots++;
     this.shotsOnCurrentTarget++;
+    if (angle !== undefined) this.lastShotAngle = angle;
+    if (power !== undefined) this.lastShotPower = power;
     this.save();
   }
 
@@ -106,6 +110,8 @@ export class GameState {
     this.currentTargetIndex = 1;
     this.totalShots = 0;
     this.shotsOnCurrentTarget = 0;
+    this.lastShotAngle = null;
+    this.lastShotPower = null;
     this.generateWind();
     this.save();
   }

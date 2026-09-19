@@ -179,20 +179,22 @@ export class InputManager {
       this.aim.dragCurrentX = screenX;
       this.aim.dragCurrentY = screenY;
 
-      // Desert Golfing slingshot mechanic: pulling backwards & downwards charges power & angle
-      const dx = this.aim.dragStartX - this.aim.dragCurrentX;
-      const dy = this.aim.dragCurrentY - this.aim.dragStartY;
+      // Forward drag aiming mechanic: dragging in front of the tank and upward sets elevation & power
+      const dx = this.aim.dragCurrentX - this.aim.dragStartX;
+      const dy = this.aim.dragStartY - this.aim.dragCurrentY;
 
-      if (Math.hypot(dx, dy) > 12) {
-        let rad = Math.atan2(dy, dx);
+      const pullDist = Math.hypot(dx, dy);
+      if (pullDist > 10) {
+        // Calculate elevation angle above horizon (clamped between 5 and 85 degrees)
+        const effDx = Math.max(0.1, dx);
+        const effDy = Math.max(0, dy);
+        let rad = Math.atan2(effDy, effDx);
         let deg = (rad * 180) / Math.PI;
 
-        // Clamp between 5 and 85 degrees
         deg = Math.max(5, Math.min(85, deg));
         this.aim.angleDeg = Math.round(deg);
 
-        // Power scaled by drag length
-        const pullDist = Math.hypot(dx, dy);
+        // Power scaled by forward drag length
         const power = Math.max(5, Math.min(100, Math.round((pullDist / 180) * 100)));
         this.aim.powerPct = power;
 
@@ -211,11 +213,12 @@ export class InputManager {
         // Pointer capture might already be released
       }
 
-      const dx = this.aim.dragStartX - this.aim.dragCurrentX;
-      const dy = this.aim.dragCurrentY - this.aim.dragStartY;
+      const dx = this.aim.dragCurrentX - this.aim.dragStartX;
+      const dy = this.aim.dragStartY - this.aim.dragCurrentY;
+      const pullDist = Math.hypot(dx, dy);
 
-      // Only fire if dragged with intention (more than 24px)
-      if (Math.hypot(dx, dy) > 24 && this.canFire && !this.playerTank?.isFlippedOnBack()) {
+      // Only fire if dragged forward with intention (pullDist > 20px and dx > 6px)
+      if (pullDist > 20 && dx > 6 && this.canFire && !this.playerTank?.isFlippedOnBack()) {
         this.triggerFire();
       }
     };
