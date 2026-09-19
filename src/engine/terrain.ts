@@ -12,7 +12,7 @@ export interface Crater {
 
 export class Terrain {
   private baseSeed: number;
-  public readonly segmentWidth: number = 45; // 45px polygonal facet width
+  public readonly segmentWidth: number = 25; // 25px polygonal facet width
   private minX: number = -1000;
   private maxX: number = 5000;
 
@@ -45,25 +45,31 @@ export class Terrain {
 
   /**
    * Procedural Polygonal Dune Altitude at vertex index
-   * Synthesizes rolling facets via multi-frequency linear interpolation of integer hashes.
+   * Synthesizes rolling facets mapped to physical world-pixel wavelengths.
+   * Scales dynamically with segmentWidth to guarantee non-volatile, navigable slopes.
    */
   private proceduralVertexHeight(i: number): number {
-    // Macro ridge layer: span of 16 segments (~720px), amplitude 170px
-    const macroIdx = Math.floor(i / 16);
-    const macroT = (i - macroIdx * 16) / 16;
-    const hMacro = this.hash(macroIdx, 1) * (1 - macroT) + this.hash(macroIdx + 1, 1) * macroT;
+    const worldX = i * this.segmentWidth;
 
-    // Mid facet layer: span of 4 segments (~180px), amplitude 45px
-    const midIdx = Math.floor(i / 4);
-    const midT = (i - midIdx * 4) / 4;
-    const hMid = this.hash(midIdx, 2) * (1 - midT) + this.hash(midIdx + 1, 2) * midT;
+    // Macro ridge layer: broad rolling dunes across 850px wavelength, amplitude 130px
+    const macroCell = Math.floor(worldX / 850);
+    const macroT = (worldX - macroCell * 850) / 850;
+    const macroSmooth = macroT * macroT * (3 - 2 * macroT);
+    const hMacro = this.hash(macroCell, 1) * (1 - macroSmooth) + this.hash(macroCell + 1, 1) * macroSmooth;
 
-    // Micro ridge layer: span of 2 segments (~90px), amplitude 15px
-    const microIdx = Math.floor(i / 2);
-    const microT = (i - microIdx * 2) / 2;
-    const hMicro = this.hash(microIdx, 3) * (1 - microT) + this.hash(microIdx + 1, 3) * microT;
+    // Mid facet layer: natural desert undulations across 320px wavelength, amplitude 32px
+    const midCell = Math.floor(worldX / 320);
+    const midT = (worldX - midCell * 320) / 320;
+    const midSmooth = midT * midT * (3 - 2 * midT);
+    const hMid = this.hash(midCell, 2) * (1 - midSmooth) + this.hash(midCell + 1, 2) * midSmooth;
 
-    return this.baseWorldY + hMacro * 170 + hMid * 45 + hMicro * 15;
+    // Micro facet layer: subtle low-poly surface shifts across 120px wavelength, amplitude 8px
+    const microCell = Math.floor(worldX / 120);
+    const microT = (worldX - microCell * 120) / 120;
+    const microSmooth = microT * microT * (3 - 2 * microT);
+    const hMicro = this.hash(microCell, 3) * (1 - microSmooth) + this.hash(microCell + 1, 3) * microSmooth;
+
+    return this.baseWorldY + hMacro * 130 + hMid * 32 + hMicro * 8;
   }
 
   public getVertexHeight(i: number): number {
